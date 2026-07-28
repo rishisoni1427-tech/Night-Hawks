@@ -267,6 +267,69 @@ async function deleteRule(id) {
   await apiSend(`/api/admin/rules/${id}`, 'DELETE');
   await loadRules();
 }
+// ---------- Events ----------
+let eventsCache = [];
+async function loadEvents() {
+  eventsCache = await apiGet('/api/events') || [];
+  renderEventsTable();
+}
+function renderEventsTable() {
+  const body = document.getElementById('eventsTableBody');
+  if (!eventsCache.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="4">No events yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = eventsCache.map(ev => `
+    <tr>
+      <td><strong>${escapeHtml(ev.title)}</strong></td>
+      <td>${escapeHtml(ev.subtitle || '')}</td>
+      <td>${escapeHtml(ev.day)} ${escapeHtml(ev.month)}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn edit" data-edit-event="${ev.id}">✏️</button>
+          <button class="icon-btn delete" data-del-event="${ev.id}">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  body.querySelectorAll('[data-edit-event]').forEach(b => b.addEventListener('click', () => openEventModal(b.dataset.editEvent)));
+  body.querySelectorAll('[data-del-event]').forEach(b => b.addEventListener('click', () => deleteEvent(b.dataset.delEvent)));
+}
+const eventModal = document.getElementById('eventModal');
+let editingEventId = null;
+document.getElementById('addEventBtn').addEventListener('click', () => openEventModal());
+document.getElementById('eventCancel').addEventListener('click', () => eventModal.classList.remove('open'));
+function openEventModal(id) {
+  editingEventId = id || null;
+  document.getElementById('eventModalTitle').textContent = id ? 'Edit Event' : 'Add Event';
+  const existing = eventsCache.find(ev => ev.id === id);
+  document.getElementById('eventTitle').value = existing ? existing.title : '';
+  document.getElementById('eventSubtitle').value = existing ? (existing.subtitle || '') : '';
+  document.getElementById('eventDay').value = existing ? existing.day : '';
+  document.getElementById('eventMonth').value = existing ? existing.month : '';
+  document.getElementById('eventIcon').value = existing ? existing.icon : 'trophy';
+  eventModal.classList.add('open');
+}
+document.getElementById('eventSave').addEventListener('click', async () => {
+  const title = document.getElementById('eventTitle').value.trim();
+  const subtitle = document.getElementById('eventSubtitle').value.trim();
+  const day = document.getElementById('eventDay').value.trim();
+  const month = document.getElementById('eventMonth').value.trim();
+  const icon = document.getElementById('eventIcon').value;
+  if (!title || !day || !month) return;
+  if (editingEventId) {
+    await apiSend(`/api/admin/events/${editingEventId}`, 'PUT', { title, subtitle, day, month, icon });
+  } else {
+    await apiSend('/api/admin/events', 'POST', { title, subtitle, day, month, icon });
+  }
+  eventModal.classList.remove('open');
+  await loadEvents();
+});
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  await apiSend(`/api/admin/events/${id}`, 'DELETE');
+  await loadEvents();
+}
 
 // ---------- Settings: stats ----------
 async function loadStatsForm() {
@@ -321,5 +384,6 @@ function escapeAttr(str) { return escapeHtml(str); }
   await loadStaff();
   await loadLinksTab();
   await loadRules();
+  await loadEvents();
   await loadStatsForm();
 })();
