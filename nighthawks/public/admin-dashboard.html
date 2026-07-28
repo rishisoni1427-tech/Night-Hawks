@@ -35,8 +35,9 @@
       <div class="admin-nav-item" data-tab="roles">🛡️ Roles</div>
       <div class="admin-nav-item" data-tab="links">🔗 Links</div>
       <div class="admin-nav-item" data-tab="rules">📄 Rules</div>
-      <div class="admin-nav-item" data-tab="announcements">📢 Announcements</div>
       <div class="admin-nav-item" data-tab="events">📅 Events</div>
+      <div class="admin-nav-item" data-tab="announcements">📢 Announcements</div>
+      <div class="admin-nav-item" data-tab="gallery">🖼️ Gallery</div>
       <div class="admin-nav-item" data-tab="settings">⚙️ Settings</div>
     </nav>
 
@@ -203,6 +204,20 @@
       </div>
     </section>
 
+    <!-- GALLERY -->
+    <section class="admin-section" id="tab-gallery">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Gallery</h2>
+            <p>Upload photos — public ones show on the <code>/gallery</code> page, private ones stay admin-only.</p>
+          </div>
+          <button class="btn-add" id="addGalleryBtn">+ Upload Photo</button>
+        </div>
+        <div class="gallery-grid" id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:20px;"></div>
+      </div>
+    </section>
+
     <!-- SETTINGS -->
     <section class="admin-section" id="tab-settings">
       <div class="admin-panel glass" style="margin-bottom:20px;">
@@ -314,6 +329,26 @@
     <div class="modal-actions">
       <button class="btn-cancel" id="announcementCancel">Cancel</button>
       <button class="btn-save" id="announcementSave">Save</button>
+    </div>
+  </div>
+</div>
+
+  <!-- GALLERY UPLOAD MODAL -->
+<div class="modal-overlay" id="galleryModal">
+  <div class="modal-box glass">
+    <h3>Upload Photo</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Choose Image</label><input type="file" id="galleryFile" accept="image/*"></div>
+      <div class="admin-field"><label>Caption (optional)</label><input type="text" id="galleryCaption"></div>
+      <div class="admin-field" style="flex-direction:row;align-items:center;gap:10px;">
+        <input type="checkbox" id="galleryPrivate" style="width:auto;">
+        <label for="galleryPrivate" style="margin:0;">Private (only visible to admin)</label>
+      </div>
+      <div class="form-msg" id="galleryMsg"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="galleryCancel">Cancel</button>
+      <button class="btn-save" id="gallerySave">Upload</button>
     </div>
   </div>
 </div>
