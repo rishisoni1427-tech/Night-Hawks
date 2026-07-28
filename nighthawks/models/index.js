@@ -49,9 +49,19 @@ const configSchema = new mongoose.Schema({
 });
 withIdJson(configSchema);
 
+const eventSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+  day: { type: String, required: true },
+  month: { type: String, required: true },
+  icon: { type: String, default: 'trophy' }
+});
+withIdJson(eventSchema);
+
 module.exports = {
   Staff: mongoose.model('Staff', staffSchema),
   Role: mongoose.model('Role', roleSchema),
   Rule: mongoose.model('Rule', ruleSchema),
-  Config: mongoose.model('Config', configSchema)
+  Config: mongoose.model('Config', configSchema),
+  Event: mongoose.model('Event', eventSchema)
 };
