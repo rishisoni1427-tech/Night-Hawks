@@ -72,6 +72,16 @@ const galleryImageSchema = new mongoose.Schema({
 });
 withIdJson(galleryImageSchema);
 
+const logSchema = new mongoose.Schema({
+  category: { type: String, required: true }, // member, message, voice, server, channel, role, mod
+  action: { type: String, required: true },    // e.g. "joined", "deleted a message", "banned"
+  actor: { type: String, default: '' },         // who did it (username)
+  target: { type: String, default: '' },        // who/what it happened to
+  detail: { type: String, default: '' },        // extra info
+  timestamp: { type: Date, default: Date.now }
+});
+withIdJson(logSchema);
+
 module.exports = {
   Staff: mongoose.model('Staff', staffSchema),
   Role: mongoose.model('Role', roleSchema),
@@ -79,5 +89,6 @@ module.exports = {
   Config: mongoose.model('Config', configSchema),
   Event: mongoose.model('Event', eventSchema),
   Announcement: mongoose.model('Announcement', announcementSchema),
-  GalleryImage: mongoose.model('GalleryImage', galleryImageSchema)
+  GalleryImage: mongoose.model('GalleryImage', galleryImageSchema),
+  Log: mongoose.model('Log', logSchema)
 };
