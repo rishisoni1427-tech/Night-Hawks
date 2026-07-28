@@ -147,7 +147,7 @@ app.get('/api/events', asyncRoute(async (req, res) => {
   res.json(await Event.find().sort({ _id: 1 }));
 }));
 app.get('/api/activity', asyncRoute(async (req, res) => {
-  const logs = await Log.find().sort({ timestamp: -1 }).limit(10);
+  const logs = await Log.find({ category: 'member' }).sort({ timestamp: -1 }).limit(10);
   const activity = logs.map(l => ({
     text: logToActivityText(l),
     time: timeAgo(l.timestamp),
