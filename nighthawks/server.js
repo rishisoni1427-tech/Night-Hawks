@@ -7,6 +7,24 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
+// ---------- Live Discord stats ----------
+const DISCORD_INVITE_CODE = 'rUXS2UUyvV';
+let liveDiscordStats = { membersOnline: 0, totalMembers: 0 };
+
+async function refreshDiscordStats() {
+  try {
+    const res = await fetch(`https://discord.com/api/v10/invites/${DISCORD_INVITE_CODE}?with_counts=true`);
+    const data = await res.json();
+    liveDiscordStats = {
+      membersOnline: data.approximate_presence_count ?? liveDiscordStats.membersOnline,
+      totalMembers: data.approximate_member_count ?? liveDiscordStats.totalMembers
+    };
+    console.log('🔄 Discord stats updated:', liveDiscordStats);
+  } catch (err) {
+    console.error('Discord stats fetch failed:', err.message);
+  }
+}
+
 const { Staff, Role, Rule, Config } = require('./models');
 const seedDatabase = require('./models/seed');
 
@@ -85,7 +103,9 @@ app.put('/api/admin/password', requireAdmin, asyncRoute(async (req, res) => {
 app.get('/api/stats', asyncRoute(async (req, res) => {
   const c = await Config.findOne({ key: 'main' });
   res.json({
-    online: c.online, membersOnline: c.membersOnline, totalMembers: c.totalMembers,
+    online: c.online,
+    membersOnline: liveDiscordStats.membersOnline,
+    totalMembers: liveDiscordStats.totalMembers,
     voiceChannels: c.voiceChannels, uptime: c.uptime, trend: c.trend
   });
 }));
@@ -126,7 +146,7 @@ app.get('/api/admin/overview', requireAdmin, asyncRoute(async (req, res) => {
   const staffCount = await Staff.countDocuments();
   const rolesCount = await Role.countDocuments();
   res.json({
-    membersOnline: c.membersOnline, totalMembers: c.totalMembers,
+    membersOnline: liveDiscordStats.membersOnline, totalMembers: liveDiscordStats.totalMembers,
     voiceChannels: c.voiceChannels, uptime: c.uptime,
     staffCount, rolesCount
   });
@@ -224,6 +244,8 @@ async function start() {
   await mongoose.connect(MONGODB_URI);
   console.log('✅ Connected to MongoDB');
   await seedDatabase();
+  await refreshDiscordStats();
+  setInterval(refreshDiscordStats, 5 * 60 * 1000);
   app.listen(PORT, () => {
     console.log(`🦅 Night Hawks server running at http://localhost:${PORT}`);
   });
