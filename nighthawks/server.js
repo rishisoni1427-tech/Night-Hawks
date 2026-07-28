@@ -25,7 +25,7 @@ async function refreshDiscordStats() {
   }
 }
 
-const { Staff, Role, Rule, Config, Event } = require('./models');
+const { Staff, Role, Rule, Config, Event, Announcement } = require('./models');
 const seedDatabase = require('./models/seed');
 
 const app = express();
@@ -41,11 +41,6 @@ const activityData = [
   { id: 2, text: 'Solaris sent a message in #general', time: '5 minutes ago', icon: 'message' },
   { id: 3, text: 'Raven earned the level 10 role', time: '10 minutes ago', icon: 'role' },
   { id: 4, text: 'Viper just joined the server', time: '12 minutes ago', icon: 'join' }
-];
-const announcementsData = [
-  { id: 1, tag: 'NEW', title: 'Welcome to Night Hawks 2.0', body: "We've completely upgraded our server for a better experience.", time: '2 days ago' },
-  { id: 2, title: 'Double XP Event This Weekend!', time: '4 days ago' },
-  { id: 3, title: 'New Giveaway Live Now', time: '5 days ago' }
 ];
 
 // ---------- Admin auth (tokens are in-memory — re-login after a server restart) ----------
@@ -109,7 +104,9 @@ app.get('/api/events', asyncRoute(async (req, res) => {
   res.json(await Event.find().sort({ _id: 1 }));
 }));
 app.get('/api/activity', (req, res) => res.json(activityData));
-app.get('/api/announcements', (req, res) => res.json(announcementsData));
+app.get('/api/announcements', asyncRoute(async (req, res) => {
+  res.json(await Announcement.find().sort({ _id: 1 }));
+}));
 
 app.get('/api/links', asyncRoute(async (req, res) => {
   const c = await Config.findOne({ key: 'main' });
@@ -217,6 +214,25 @@ app.put('/api/admin/events/:id', requireAdmin, asyncRoute(async (req, res) => {
 
 app.delete('/api/admin/events/:id', requireAdmin, asyncRoute(async (req, res) => {
   await Event.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+}));
+// ---------- Admin: announcements CRUD ----------
+app.post('/api/admin/announcements', requireAdmin, asyncRoute(async (req, res) => {
+  const { tag, title, body, time } = req.body || {};
+  if (!title) return res.status(400).json({ message: 'Title is required.' });
+  const announcement = await Announcement.create({ tag: tag || '', title, body: body || '', time: time || 'Just now' });
+  res.json(announcement);
+}));
+
+app.put('/api/admin/announcements/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const { tag, title, body, time } = req.body || {};
+  const announcement = await Announcement.findByIdAndUpdate(req.params.id, { tag, title, body, time }, { new: true });
+  if (!announcement) return res.status(404).json({ message: 'Announcement not found.' });
+  res.json(announcement);
+}));
+
+app.delete('/api/admin/announcements/:id', requireAdmin, asyncRoute(async (req, res) => {
+  await Announcement.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 }));
 
