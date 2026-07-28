@@ -64,6 +64,13 @@ const announcementSchema = new mongoose.Schema({
   time: { type: String, default: 'Just now' }
 });
 withIdJson(announcementSchema);
+const galleryImageSchema = new mongoose.Schema({
+  imageUrl: { type: String, required: true },
+  caption: { type: String, default: '' },
+  isPrivate: { type: Boolean, default: false },
+  uploadedAt: { type: Date, default: Date.now }
+});
+withIdJson(galleryImageSchema);
 
 module.exports = {
   Staff: mongoose.model('Staff', staffSchema),
@@ -71,5 +78,6 @@ module.exports = {
   Rule: mongoose.model('Rule', ruleSchema),
   Config: mongoose.model('Config', configSchema),
   Event: mongoose.model('Event', eventSchema),
-  Announcement: mongoose.model('Announcement', announcementSchema)
+  Announcement: mongoose.model('Announcement', announcementSchema),
+  GalleryImage: mongoose.model('GalleryImage', galleryImageSchema)
 };
