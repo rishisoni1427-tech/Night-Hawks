@@ -57,11 +57,19 @@ const eventSchema = new mongoose.Schema({
   icon: { type: String, default: 'trophy' }
 });
 withIdJson(eventSchema);
+const announcementSchema = new mongoose.Schema({
+  tag: { type: String, default: '' },
+  title: { type: String, required: true },
+  body: { type: String, default: '' },
+  time: { type: String, default: 'Just now' }
+});
+withIdJson(announcementSchema);
 
 module.exports = {
   Staff: mongoose.model('Staff', staffSchema),
   Role: mongoose.model('Role', roleSchema),
   Rule: mongoose.model('Rule', ruleSchema),
   Config: mongoose.model('Config', configSchema),
-  Event: mongoose.model('Event', eventSchema)
+  Event: mongoose.model('Event', eventSchema),
+  Announcement: mongoose.model('Announcement', announcementSchema)
 };
