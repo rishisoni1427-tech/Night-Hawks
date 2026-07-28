@@ -40,6 +40,10 @@ document.querySelectorAll('[data-goto]').forEach(btn => {
 function goToTab(tab) {
   document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.toggle('active', i.dataset.tab === tab));
   document.querySelectorAll('.admin-section').forEach(s => s.classList.toggle('active', s.id === 'tab-' + tab));
+  if (tab !== 'logs' && logsPollInterval) {
+    clearInterval(logsPollInterval);
+    logsPollInterval = null;
+  }
 }
 
 // ---------- Logout ----------
@@ -460,6 +464,39 @@ async function deleteGalleryImage(id) {
   await apiSend(`/api/admin/gallery/${id}`, 'DELETE');
   await loadGallery();
 }
+
+// ---------- Logs ----------
+let logsPollInterval = null;
+async function loadLogs() {
+  const category = document.getElementById('logCategoryFilter').value;
+  const logs = await apiGet(`/api/admin/logs?category=${category}&limit=100`) || [];
+  renderLogsTable(logs);
+}
+function renderLogsTable(logs) {
+  const body = document.getElementById('logsTableBody');
+  if (!logs.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">No logs yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = logs.map(l => `
+    <tr>
+      <td>${escapeHtml(l.category)}</td>
+      <td>${escapeHtml(l.action)}</td>
+      <td>${escapeHtml(l.actor || '—')}</td>
+      <td>${escapeHtml(l.target || '—')}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(l.detail || '')}</td>
+      <td>${new Date(l.timestamp).toLocaleString()}</td>
+    </tr>
+  `).join('');
+}
+document.getElementById('logCategoryFilter').addEventListener('change', loadLogs);
+
+// live refresh every 5 seconds while Logs tab is open
+document.querySelector('[data-tab="logs"]').addEventListener('click', () => {
+  loadLogs();
+  if (logsPollInterval) clearInterval(logsPollInterval);
+  logsPollInterval = setInterval(loadLogs, 5000);
+});
 
 // ---------- Settings: stats ----------
 async function loadStatsForm() {
