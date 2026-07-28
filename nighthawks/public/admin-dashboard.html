@@ -38,6 +38,7 @@
       <div class="admin-nav-item" data-tab="events">📅 Events</div>
       <div class="admin-nav-item" data-tab="announcements">📢 Announcements</div>
       <div class="admin-nav-item" data-tab="gallery">🖼️ Gallery</div>
+      <div class="admin-nav-item" data-tab="logs">📜 Logs</div>
       <div class="admin-nav-item" data-tab="settings">⚙️ Settings</div>
     </nav>
 
@@ -215,6 +216,32 @@
           <button class="btn-add" id="addGalleryBtn">+ Upload Photo</button>
         </div>
         <div class="gallery-grid" id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:20px;"></div>
+      </div>
+    </section>
+
+    <!-- LOGS -->
+    <section class="admin-section" id="tab-logs">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Server Logs</h2>
+            <p>Live activity from your Discord server — refreshes automatically.</p>
+          </div>
+          <select id="logCategoryFilter" style="background:#1a1a2e;color:#fff;border:1px solid #333;border-radius:8px;padding:8px 14px;">
+            <option value="all">All Logs</option>
+            <option value="member">Member Logs</option>
+            <option value="message">Message Logs</option>
+            <option value="voice">Voice Logs</option>
+            <option value="server">Server Logs</option>
+            <option value="channel">Channel Logs</option>
+            <option value="role">Role Logs</option>
+            <option value="mod">Mod Logs</option>
+          </select>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Category</th><th>Action</th><th>Actor</th><th>Target</th><th>Detail</th><th>Time</th></tr></thead>
+          <tbody id="logsTableBody"></tbody>
+        </table>
       </div>
     </section>
 
