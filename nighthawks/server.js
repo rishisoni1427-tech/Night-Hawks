@@ -6,6 +6,26 @@ const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
+const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+
+function uploadToCloudinary(buffer) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'night-hawks-gallery' },
+      (err, result) => err ? reject(err) : resolve(result)
+    );
+    stream.end(buffer);
+  });
+}
 
 // ---------- Live Discord stats ----------
 const DISCORD_INVITE_CODE = 'rUXS2UUyvV';
@@ -25,7 +45,7 @@ async function refreshDiscordStats() {
   }
 }
 
-const { Staff, Role, Rule, Config, Event, Announcement } = require('./models');
+const { Staff, Role, Rule, Config, Event, Announcement, GalleryImage } = require('./models');
 const seedDatabase = require('./models/seed');
 
 const app = express();
@@ -264,6 +284,31 @@ app.put('/api/admin/rules/:id', requireAdmin, asyncRoute(async (req, res) => {
 
 app.delete('/api/admin/rules/:id', requireAdmin, asyncRoute(async (req, res) => {
   await Rule.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+}));
+// ---------- Public: gallery (only non-private images) ----------
+app.get('/api/gallery', asyncRoute(async (req, res) => {
+  const images = await GalleryImage.find({ isPrivate: false }).sort({ uploadedAt: -1 });
+  res.json(images);
+}));
+
+// ---------- Admin: gallery (all images, including private) ----------
+app.get('/api/admin/gallery', requireAdmin, asyncRoute(async (req, res) => {
+  const images = await GalleryImage.find().sort({ uploadedAt: -1 });
+  res.json(images);
+}));
+
+app.post('/api/admin/gallery/upload', requireAdmin, upload.single('image'), asyncRoute(async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No image file provided.' });
+  const isPrivate = req.body.isPrivate === 'true';
+  const caption = req.body.caption || '';
+  const result = await uploadToCloudinary(req.file.buffer);
+  const image = await GalleryImage.create({ imageUrl: result.secure_url, caption, isPrivate });
+  res.json(image);
+}));
+
+app.delete('/api/admin/gallery/:id', requireAdmin, asyncRoute(async (req, res) => {
+  await GalleryImage.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 }));
 
