@@ -331,6 +331,68 @@ async function deleteEvent(id) {
   await loadEvents();
 }
 
+// ---------- Announcements ----------
+let announcementsCache = [];
+async function loadAnnouncements() {
+  announcementsCache = await apiGet('/api/announcements') || [];
+  renderAnnouncementsTable();
+}
+function renderAnnouncementsTable() {
+  const body = document.getElementById('announcementsTableBody');
+  if (!announcementsCache.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="4">No announcements yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = announcementsCache.map(a => `
+    <tr>
+      <td>${escapeHtml(a.tag || '')}</td>
+      <td><strong>${escapeHtml(a.title)}</strong></td>
+      <td>${escapeHtml(a.time || '')}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn edit" data-edit-announcement="${a.id}">✏️</button>
+          <button class="icon-btn delete" data-del-announcement="${a.id}">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  body.querySelectorAll('[data-edit-announcement]').forEach(b => b.addEventListener('click', () => openAnnouncementModal(b.dataset.editAnnouncement)));
+  body.querySelectorAll('[data-del-announcement]').forEach(b => b.addEventListener('click', () => deleteAnnouncement(b.dataset.delAnnouncement)));
+}
+const announcementModal = document.getElementById('announcementModal');
+let editingAnnouncementId = null;
+document.getElementById('addAnnouncementBtn').addEventListener('click', () => openAnnouncementModal());
+document.getElementById('announcementCancel').addEventListener('click', () => announcementModal.classList.remove('open'));
+function openAnnouncementModal(id) {
+  editingAnnouncementId = id || null;
+  document.getElementById('announcementModalTitle').textContent = id ? 'Edit Announcement' : 'Add Announcement';
+  const existing = announcementsCache.find(a => a.id === id);
+  document.getElementById('announcementTag').value = existing ? (existing.tag || '') : '';
+  document.getElementById('announcementTitle').value = existing ? existing.title : '';
+  document.getElementById('announcementBody').value = existing ? (existing.body || '') : '';
+  document.getElementById('announcementTime').value = existing ? (existing.time || '') : '';
+  announcementModal.classList.add('open');
+}
+document.getElementById('announcementSave').addEventListener('click', async () => {
+  const tag = document.getElementById('announcementTag').value.trim();
+  const title = document.getElementById('announcementTitle').value.trim();
+  const body = document.getElementById('announcementBody').value.trim();
+  const time = document.getElementById('announcementTime').value.trim();
+  if (!title) return;
+  if (editingAnnouncementId) {
+    await apiSend(`/api/admin/announcements/${editingAnnouncementId}`, 'PUT', { tag, title, body, time });
+  } else {
+    await apiSend('/api/admin/announcements', 'POST', { tag, title, body, time });
+  }
+  announcementModal.classList.remove('open');
+  await loadAnnouncements();
+});
+async function deleteAnnouncement(id) {
+  if (!confirm('Delete this announcement?')) return;
+  await apiSend(`/api/admin/announcements/${id}`, 'DELETE');
+  await loadAnnouncements();
+}
+
 // ---------- Settings: stats ----------
 async function loadStatsForm() {
   const data = await apiGet('/api/stats');
@@ -385,5 +447,6 @@ function escapeAttr(str) { return escapeHtml(str); }
   await loadLinksTab();
   await loadRules();
   await loadEvents();
+  await loadAnnouncements();
   await loadStatsForm();
 })();
