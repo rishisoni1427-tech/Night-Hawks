@@ -35,6 +35,8 @@
       <div class="admin-nav-item" data-tab="roles">🛡️ Roles</div>
       <div class="admin-nav-item" data-tab="links">🔗 Links</div>
       <div class="admin-nav-item" data-tab="rules">📄 Rules</div>
+      <div class="admin-nav-item" data-tab="announcements">📢 Announcements</div>
+      <div class="admin-nav-item" data-tab="events">📅 Events</div>
       <div class="admin-nav-item" data-tab="settings">⚙️ Settings</div>
     </nav>
 
@@ -168,6 +170,39 @@
       </div>
     </section>
 
+    <!-- EVENTS -->
+    <section class="admin-section" id="tab-events">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Events</h2>
+            <p>Add, edit, or remove events — changes appear on the homepage instantly.</p>
+          </div>
+          <button class="btn-add" id="addEventBtn">+ Add Event</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Subtitle</th><th>Date</th><th></th></tr></thead>
+          <tbody id="eventsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+    <!-- ANNOUNCEMENTS -->
+    <section class="admin-section" id="tab-announcements">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Announcements</h2>
+            <p>Add, edit, or remove announcements — changes appear on the homepage instantly.</p>
+          </div>
+          <button class="btn-add" id="addAnnouncementBtn">+ Add Announcement</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Tag</th><th>Title</th><th>Time</th><th></th></tr></thead>
+          <tbody id="announcementsTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- SETTINGS -->
     <section class="admin-section" id="tab-settings">
       <div class="admin-panel glass" style="margin-bottom:20px;">
@@ -240,6 +275,45 @@
     <div class="modal-actions">
       <button class="btn-cancel" id="ruleCancel">Cancel</button>
       <button class="btn-save" id="ruleSave">Save</button>
+    </div>
+  </div>
+</div>
+  <!-- EVENT MODAL -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal-box glass">
+    <h3 id="eventModalTitle">Add Event</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Title</label><input type="text" id="eventTitle"></div>
+      <div class="admin-field"><label>Subtitle</label><input type="text" id="eventSubtitle"></div>
+      <div class="admin-field"><label>Day (e.g. 24)</label><input type="text" id="eventDay"></div>
+      <div class="admin-field"><label>Month (e.g. JUN)</label><input type="text" id="eventMonth"></div>
+      <div class="admin-field"><label>Icon</label>
+        <select id="eventIcon">
+          <option value="trophy">🏆 Trophy</option>
+          <option value="block">🧱 Block</option>
+          <option value="gift">🎁 Gift</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="eventCancel">Cancel</button>
+      <button class="btn-save" id="eventSave">Save</button>
+    </div>
+  </div>
+</div>
+  <!-- ANNOUNCEMENT MODAL -->
+<div class="modal-overlay" id="announcementModal">
+  <div class="modal-box glass">
+    <h3 id="announcementModalTitle">Add Announcement</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Tag (optional, e.g. NEW)</label><input type="text" id="announcementTag"></div>
+      <div class="admin-field"><label>Title</label><input type="text" id="announcementTitle"></div>
+      <div class="admin-field"><label>Body (optional)</label><textarea id="announcementBody"></textarea></div>
+      <div class="admin-field"><label>Time label (e.g. 2 days ago)</label><input type="text" id="announcementTime"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="announcementCancel">Cancel</button>
+      <button class="btn-save" id="announcementSave">Save</button>
     </div>
   </div>
 </div>
