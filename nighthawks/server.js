@@ -25,7 +25,7 @@ async function refreshDiscordStats() {
   }
 }
 
-const { Staff, Role, Rule, Config } = require('./models');
+const { Staff, Role, Rule, Config, Event } = require('./models');
 const seedDatabase = require('./models/seed');
 
 const app = express();
@@ -36,11 +36,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // static (non-DB) content — kept simple since these aren't admin-editable yet
-const eventsData = [
-  { id: 1, title: 'Hawks Championship', subtitle: 'Valorant Tournament', day: '24', month: 'JUN', icon: 'trophy' },
-  { id: 2, title: 'Minecraft Build Battle', subtitle: 'Creative Challenge', day: '28', month: 'JUN', icon: 'block' },
-  { id: 3, title: 'Night Hawks Giveaway', subtitle: 'Nitro + Game Keys', day: '05', month: 'JUL', icon: 'gift' }
-];
 const activityData = [
   { id: 1, text: 'Phoenix just joined the server', time: '2 minutes ago', icon: 'join' },
   { id: 2, text: 'Solaris sent a message in #general', time: '5 minutes ago', icon: 'message' },
@@ -110,7 +105,9 @@ app.get('/api/stats', asyncRoute(async (req, res) => {
   });
 }));
 
-app.get('/api/events', (req, res) => res.json(eventsData));
+app.get('/api/events', asyncRoute(async (req, res) => {
+  res.json(await Event.find().sort({ _id: 1 }));
+}));
 app.get('/api/activity', (req, res) => res.json(activityData));
 app.get('/api/announcements', (req, res) => res.json(announcementsData));
 
@@ -201,6 +198,25 @@ app.put('/api/admin/roles/:id', requireAdmin, asyncRoute(async (req, res) => {
 
 app.delete('/api/admin/roles/:id', requireAdmin, asyncRoute(async (req, res) => {
   await Role.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
+}));
+// ---------- Admin: events CRUD ----------
+app.post('/api/admin/events', requireAdmin, asyncRoute(async (req, res) => {
+  const { title, subtitle, day, month, icon } = req.body || {};
+  if (!title || !day || !month) return res.status(400).json({ message: 'Title, day, and month are required.' });
+  const event = await Event.create({ title, subtitle, day, month, icon: icon || 'trophy' });
+  res.json(event);
+}));
+
+app.put('/api/admin/events/:id', requireAdmin, asyncRoute(async (req, res) => {
+  const { title, subtitle, day, month, icon } = req.body || {};
+  const event = await Event.findByIdAndUpdate(req.params.id, { title, subtitle, day, month, icon }, { new: true });
+  if (!event) return res.status(404).json({ message: 'Event not found.' });
+  res.json(event);
+}));
+
+app.delete('/api/admin/events/:id', requireAdmin, asyncRoute(async (req, res) => {
+  await Event.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 }));
 
