@@ -57,12 +57,34 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // static (non-DB) content — kept simple since these aren't admin-editable yet
-const activityData = [
-  { id: 1, text: 'Phoenix just joined the server', time: '2 minutes ago', icon: 'join' },
-  { id: 2, text: 'Solaris sent a message in #general', time: '5 minutes ago', icon: 'message' },
-  { id: 3, text: 'Raven earned the level 10 role', time: '10 minutes ago', icon: 'role' },
-  { id: 4, text: 'Viper just joined the server', time: '12 minutes ago', icon: 'join' }
-];
+// ---------- Homepage activity feed (built from real bot logs) ----------
+function timeAgo(date) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
+function logToActivityText(l) {
+  if (l.category === 'member' && l.action.includes('joined')) return `${l.actor} just joined the server`;
+  if (l.category === 'member' && l.action.includes('left')) return `${l.actor} left the server`;
+  if (l.category === 'message') return `${l.actor} ${l.action} in ${l.target}`;
+  if (l.category === 'role') return `Role "${l.target}" was ${l.action}`;
+  if (l.category === 'voice') return `${l.actor} ${l.action} ${l.target}`;
+  if (l.category === 'mod') return `${l.target} was ${l.action.replace('a member', '')}`;
+  return `${l.actor || ''} ${l.action} ${l.target || ''}`.trim();
+}
+
+function logToActivityIcon(l) {
+  if (l.category === 'member') return l.action.includes('joined') ? 'join' : 'join';
+  if (l.category === 'message') return 'message';
+  if (l.category === 'role') return 'role';
+  return 'message';
+}
 
 // ---------- Admin auth (tokens are in-memory — re-login after a server restart) ----------
 const adminTokens = new Set();
@@ -124,7 +146,16 @@ app.get('/api/stats', asyncRoute(async (req, res) => {
 app.get('/api/events', asyncRoute(async (req, res) => {
   res.json(await Event.find().sort({ _id: 1 }));
 }));
-app.get('/api/activity', (req, res) => res.json(activityData));
+app.get('/api/activity', asyncRoute(async (req, res) => {
+  const logs = await Log.find().sort({ timestamp: -1 }).limit(10);
+  const activity = logs.map(l => ({
+    text: logToActivityText(l),
+    time: timeAgo(l.timestamp),
+    icon: logToActivityIcon(l)
+  }));
+  res.json(activity);
+}));
+
 app.get('/api/announcements', asyncRoute(async (req, res) => {
   res.json(await Announcement.find().sort({ _id: 1 }));
 }));
