@@ -31,6 +31,9 @@ async function loadStats() {
     const res = await fetch('/api/stats');
     const s = await res.json();
     document.getElementById('membersOnline').textContent = fmt(s.membersOnline);
+    document.getElementById('membersOnline').textContent = fmt(s.membersOnline);
+    const hawksCountEl = document.getElementById('hawksCount');
+    if (hawksCountEl) hawksCountEl.textContent = fmt(s.totalMembers) + '+ Hawks';
     document.getElementById('totalMembers').textContent = fmt(s.totalMembers);
     document.getElementById('voiceChannels').textContent = fmt(s.voiceChannels);
     document.getElementById('uptime').textContent = s.uptime + '%';
