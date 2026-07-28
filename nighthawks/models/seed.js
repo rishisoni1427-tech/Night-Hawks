@@ -36,6 +36,16 @@ async function seedDatabase() {
     console.log('Seeded default rules');
   }
 
+  const eventCount = await Event.countDocuments();
+  if (eventCount === 0) {
+    await Event.insertMany([
+      { title: 'Hawks Championship', subtitle: 'Valorant Tournament', day: '24', month: 'JUN', icon: 'trophy' },
+      { title: 'Minecraft Build Battle', subtitle: 'Creative Challenge', day: '28', month: 'JUN', icon: 'block' },
+      { title: 'Night Hawks Giveaway', subtitle: 'Nitro + Game Keys', day: '05', month: 'JUL', icon: 'gift' }
+    ]);
+    console.log('Seeded default events');
+  }
+
   const config = await Config.findOne({ key: 'main' });
   if (!config) {
     const passwordHash = await bcrypt.hash(process.env.ADMIN_DEFAULT_PASSWORD || '1', 10);
