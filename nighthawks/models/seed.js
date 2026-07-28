@@ -1,7 +1,7 @@
 // models/seed.js — populates the database with default data on first run
 
 const bcrypt = require('bcryptjs');
-const { Staff, Role, Rule, Config } = require('./index');
+const { Staff, Role, Rule, Config, Event } = require('./index');
 
 async function seedDatabase() {
   const roleCount = await Role.countDocuments();
