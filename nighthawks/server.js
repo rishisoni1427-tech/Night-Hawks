@@ -45,8 +45,9 @@ async function refreshDiscordStats() {
   }
 }
 
-const { Staff, Role, Rule, Config, Event, Announcement, GalleryImage } = require('./models');
+const { Staff, Role, Rule, Config, Event, Announcement, GalleryImage, Log } = require('./models');
 const seedDatabase = require('./models/seed');
+const { startBot } = require('./bot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -298,6 +299,15 @@ app.get('/api/admin/gallery', requireAdmin, asyncRoute(async (req, res) => {
   res.json(images);
 }));
 
+// ---------- Admin: logs ----------
+app.get('/api/admin/logs', requireAdmin, asyncRoute(async (req, res) => {
+  const { category, limit } = req.query;
+  const filter = category && category !== 'all' ? { category } : {};
+  const logs = await Log.find(filter).sort({ timestamp: -1 }).limit(Number(limit) || 100);
+  res.json(logs);
+}));
+
+
 app.post('/api/admin/gallery/upload', requireAdmin, upload.single('image'), asyncRoute(async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No image file provided.' });
   const isPrivate = req.body.isPrivate === 'true';
@@ -323,6 +333,7 @@ async function start() {
   await seedDatabase();
   await refreshDiscordStats();
   setInterval(refreshDiscordStats, 5 * 60 * 1000);
+  startBot();
   app.listen(PORT, () => {
     console.log(`🦅 Night Hawks server running at http://localhost:${PORT}`);
   });
