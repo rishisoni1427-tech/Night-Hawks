@@ -1,7 +1,7 @@
 // models/seed.js — populates the database with default data on first run
 
 const bcrypt = require('bcryptjs');
-const { Staff, Role, Rule, Config, Event } = require('./index');
+const { Staff, Role, Rule, Config, Event, Announcement } = require('./index');
 
 async function seedDatabase() {
   const roleCount = await Role.countDocuments();
@@ -44,6 +44,16 @@ async function seedDatabase() {
       { title: 'Night Hawks Giveaway', subtitle: 'Nitro + Game Keys', day: '05', month: 'JUL', icon: 'gift' }
     ]);
     console.log('Seeded default events');
+  }
+
+  const announcementCount = await Announcement.countDocuments();
+  if (announcementCount === 0) {
+    await Announcement.insertMany([
+      { tag: 'NEW', title: 'Welcome to Night Hawks 2.0', body: "We've completely upgraded our server for a better experience.", time: '2 days ago' },
+      { title: 'Double XP Event This Weekend!', time: '4 days ago' },
+      { title: 'New Giveaway Live Now', time: '5 days ago' }
+    ]);
+    console.log('Seeded default announcements');
   }
 
   const config = await Config.findOne({ key: 'main' });
