@@ -15,7 +15,7 @@ function authHeaders(json = true) {
 }
 
 async function apiGet(url) {
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: authHeaders(false) });
   if (res.status === 401) return handleUnauthorized();
   return res.json();
 }
