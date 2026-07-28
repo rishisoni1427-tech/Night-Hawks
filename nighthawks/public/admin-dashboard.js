@@ -1,0 +1,325 @@
+// admin-dashboard.js — full CRUD logic for the admin panel
+
+const token = sessionStorage.getItem('nh_admin_token');
+if (!token) window.location.href = 'admin-login.html';
+
+const adminName = sessionStorage.getItem('nh_admin_name') || 'Admin';
+document.getElementById('adminNameLabel').textContent = adminName;
+document.getElementById('welcomeName').textContent = adminName;
+document.getElementById('avatarInitial').textContent = adminName.charAt(0).toUpperCase();
+
+function authHeaders(json = true) {
+  const h = { 'x-admin-token': token };
+  if (json) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  if (res.status === 401) return handleUnauthorized();
+  return res.json();
+}
+async function apiSend(url, method, body) {
+  const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(body || {}) });
+  if (res.status === 401) return handleUnauthorized();
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, data };
+}
+function handleUnauthorized() {
+  sessionStorage.removeItem('nh_admin_token');
+  window.location.href = 'admin-login.html';
+}
+
+// ---------- Tab switching ----------
+document.querySelectorAll('.admin-nav-item').forEach(item => {
+  item.addEventListener('click', () => goToTab(item.dataset.tab));
+});
+document.querySelectorAll('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => goToTab(btn.dataset.goto));
+});
+function goToTab(tab) {
+  document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.toggle('active', i.dataset.tab === tab));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.toggle('active', s.id === 'tab-' + tab));
+}
+
+// ---------- Logout ----------
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/admin/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});
+  sessionStorage.removeItem('nh_admin_token');
+  sessionStorage.removeItem('nh_admin_name');
+  window.location.href = 'admin-login.html';
+});
+
+// ---------- Overview ----------
+async function loadOverview() {
+  const data = await apiGet('/api/admin/overview');
+  if (!data) return;
+  document.getElementById('ovMembersOnline').textContent = data.membersOnline?.toLocaleString('en-US') ?? '—';
+  document.getElementById('ovTotalMembers').textContent = data.totalMembers?.toLocaleString('en-US') ?? '—';
+  document.getElementById('ovStaffCount').textContent = data.staffCount ?? '—';
+  document.getElementById('ovRolesCount').textContent = data.rolesCount ?? '—';
+}
+
+// ---------- Roles cache (used in staff dropdown too) ----------
+let rolesCache = [];
+async function loadRoles() {
+  rolesCache = await apiGet('/api/roles') || [];
+  renderRolesTable();
+  populateStaffRoleSelect();
+}
+function renderRolesTable() {
+  const body = document.getElementById('rolesTableBody');
+  if (!rolesCache.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="3">No roles yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = rolesCache.map(r => `
+    <tr>
+      <td><strong>${escapeHtml(r.name)}</strong></td>
+      <td><span class="role-chip" style="color:${r.color};border-color:${r.color};background:${r.color}22;">${escapeHtml(r.name)}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn edit" data-edit-role="${r.id}">✏️</button>
+          <button class="icon-btn delete" data-del-role="${r.id}">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  body.querySelectorAll('[data-edit-role]').forEach(b => b.addEventListener('click', () => openRoleModal(b.dataset.editRole)));
+  body.querySelectorAll('[data-del-role]').forEach(b => b.addEventListener('click', () => deleteRole(b.dataset.delRole)));
+}
+function populateStaffRoleSelect() {
+  const sel = document.getElementById('staffRole');
+  sel.innerHTML = rolesCache.map(r => `<option value="${escapeAttr(r.name)}">${escapeHtml(r.name)}</option>`).join('');
+}
+
+// ---------- Roles modal ----------
+const roleModal = document.getElementById('roleModal');
+let editingRoleId = null;
+document.getElementById('addRoleBtn').addEventListener('click', () => openRoleModal());
+document.getElementById('roleCancel').addEventListener('click', () => roleModal.classList.remove('open'));
+function openRoleModal(id) {
+  editingRoleId = id || null;
+  document.getElementById('roleModalTitle').textContent = id ? 'Edit Role' : 'Add Role';
+  const existing = rolesCache.find(r => r.id === id);
+  document.getElementById('roleName').value = existing ? existing.name : '';
+  document.getElementById('roleColor').value = existing ? existing.color : '#a855f7';
+  roleModal.classList.add('open');
+}
+document.getElementById('roleSave').addEventListener('click', async () => {
+  const name = document.getElementById('roleName').value.trim();
+  const color = document.getElementById('roleColor').value;
+  if (!name) return;
+  if (editingRoleId) {
+    await apiSend(`/api/admin/roles/${editingRoleId}`, 'PUT', { name, color });
+  } else {
+    await apiSend('/api/admin/roles', 'POST', { name, color });
+  }
+  roleModal.classList.remove('open');
+  await loadRoles();
+  await loadOverview();
+});
+async function deleteRole(id) {
+  if (!confirm('Delete this role?')) return;
+  await apiSend(`/api/admin/roles/${id}`, 'DELETE');
+  await loadRoles();
+  await loadOverview();
+}
+
+// ---------- Staff ----------
+let staffCache = [];
+async function loadStaff() {
+  staffCache = await apiGet('/api/staff') || [];
+  renderStaffTable();
+}
+function roleColor(roleName) {
+  const r = rolesCache.find(r => r.name === roleName);
+  return r ? r.color : '#a855f7';
+}
+function renderStaffTable() {
+  const body = document.getElementById('staffTableBody');
+  if (!staffCache.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="4">No staff members yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = staffCache.map(m => {
+    const c = roleColor(m.role);
+    return `
+    <tr>
+      <td><strong>${escapeHtml(m.name)}</strong></td>
+      <td><span class="role-chip" style="color:${c};border-color:${c};background:${c}22;">${escapeHtml(m.role)}</span></td>
+      <td>${escapeHtml(m.bio || '')}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn edit" data-edit-staff="${m.id}">✏️</button>
+          <button class="icon-btn delete" data-del-staff="${m.id}">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('[data-edit-staff]').forEach(b => b.addEventListener('click', () => openStaffModal(b.dataset.editStaff)));
+  body.querySelectorAll('[data-del-staff]').forEach(b => b.addEventListener('click', () => deleteStaff(b.dataset.delStaff)));
+}
+
+const staffModal = document.getElementById('staffModal');
+let editingStaffId = null;
+document.getElementById('addStaffBtn').addEventListener('click', () => openStaffModal());
+document.getElementById('staffCancel').addEventListener('click', () => staffModal.classList.remove('open'));
+function openStaffModal(id) {
+  editingStaffId = id || null;
+  document.getElementById('staffModalTitle').textContent = id ? 'Edit Staff Member' : 'Add Staff Member';
+  const existing = staffCache.find(m => m.id === id);
+  document.getElementById('staffName').value = existing ? existing.name : '';
+  document.getElementById('staffBio').value = existing ? (existing.bio || '') : '';
+  if (existing) document.getElementById('staffRole').value = existing.role;
+  staffModal.classList.add('open');
+}
+document.getElementById('staffSave').addEventListener('click', async () => {
+  const name = document.getElementById('staffName').value.trim();
+  const role = document.getElementById('staffRole').value;
+  const bio = document.getElementById('staffBio').value.trim();
+  if (!name || !role) return;
+  if (editingStaffId) {
+    await apiSend(`/api/admin/staff/${editingStaffId}`, 'PUT', { name, role, bio });
+  } else {
+    await apiSend('/api/admin/staff', 'POST', { name, role, bio });
+  }
+  staffModal.classList.remove('open');
+  await loadStaff();
+  await loadOverview();
+});
+async function deleteStaff(id) {
+  if (!confirm('Remove this staff member?')) return;
+  await apiSend(`/api/admin/staff/${id}`, 'DELETE');
+  await loadStaff();
+  await loadOverview();
+}
+
+// ---------- Links ----------
+async function loadLinksTab() {
+  const data = await apiGet('/api/links');
+  if (!data) return;
+  document.getElementById('linkDiscord').value = data.discord || '';
+  document.getElementById('linkYoutube').value = data.youtube || '';
+  document.getElementById('linkInstagram').value = data.instagram || '';
+}
+document.getElementById('saveLinksBtn').addEventListener('click', async () => {
+  const discord = document.getElementById('linkDiscord').value.trim();
+  const youtube = document.getElementById('linkYoutube').value.trim();
+  const instagram = document.getElementById('linkInstagram').value.trim();
+  const { ok } = await apiSend('/api/admin/links', 'PUT', { discord, youtube, instagram });
+  showMsg('linksMsg', ok ? 'Saved!' : 'Something went wrong.', ok);
+});
+
+// ---------- Rules ----------
+let rulesCache = [];
+async function loadRules() {
+  rulesCache = await apiGet('/api/rules') || [];
+  renderRulesTable();
+}
+function renderRulesTable() {
+  const body = document.getElementById('rulesTableBody');
+  if (!rulesCache.length) {
+    body.innerHTML = `<tr class="empty-row"><td colspan="3">No rules yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = rulesCache.map(r => `
+    <tr>
+      <td><strong>${escapeHtml(r.title)}</strong></td>
+      <td>${escapeHtml(r.description || '')}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn edit" data-edit-rule="${r.id}">✏️</button>
+          <button class="icon-btn delete" data-del-rule="${r.id}">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  body.querySelectorAll('[data-edit-rule]').forEach(b => b.addEventListener('click', () => openRuleModal(b.dataset.editRule)));
+  body.querySelectorAll('[data-del-rule]').forEach(b => b.addEventListener('click', () => deleteRule(b.dataset.delRule)));
+}
+const ruleModal = document.getElementById('ruleModal');
+let editingRuleId = null;
+document.getElementById('addRuleBtn').addEventListener('click', () => openRuleModal());
+document.getElementById('ruleCancel').addEventListener('click', () => ruleModal.classList.remove('open'));
+function openRuleModal(id) {
+  editingRuleId = id || null;
+  document.getElementById('ruleModalTitle').textContent = id ? 'Edit Rule' : 'Add Rule';
+  const existing = rulesCache.find(r => r.id === id);
+  document.getElementById('ruleTitle').value = existing ? existing.title : '';
+  document.getElementById('ruleDescription').value = existing ? (existing.description || '') : '';
+  ruleModal.classList.add('open');
+}
+document.getElementById('ruleSave').addEventListener('click', async () => {
+  const title = document.getElementById('ruleTitle').value.trim();
+  const description = document.getElementById('ruleDescription').value.trim();
+  if (!title) return;
+  if (editingRuleId) {
+    await apiSend(`/api/admin/rules/${editingRuleId}`, 'PUT', { title, description });
+  } else {
+    await apiSend('/api/admin/rules', 'POST', { title, description });
+  }
+  ruleModal.classList.remove('open');
+  await loadRules();
+});
+async function deleteRule(id) {
+  if (!confirm('Delete this rule?')) return;
+  await apiSend(`/api/admin/rules/${id}`, 'DELETE');
+  await loadRules();
+}
+
+// ---------- Settings: stats ----------
+async function loadStatsForm() {
+  const data = await apiGet('/api/stats');
+  if (!data) return;
+  document.getElementById('statMembersOnline').value = data.membersOnline;
+  document.getElementById('statTotalMembers').value = data.totalMembers;
+  document.getElementById('statVoiceChannels').value = data.voiceChannels;
+  document.getElementById('statUptime').value = data.uptime;
+}
+document.getElementById('saveStatsBtn').addEventListener('click', async () => {
+  const body = {
+    membersOnline: document.getElementById('statMembersOnline').value,
+    totalMembers: document.getElementById('statTotalMembers').value,
+    voiceChannels: document.getElementById('statVoiceChannels').value,
+    uptime: document.getElementById('statUptime').value
+  };
+  const { ok } = await apiSend('/api/admin/stats', 'PUT', body);
+  showMsg('statsMsg', ok ? 'Saved!' : 'Something went wrong.', ok);
+  await loadOverview();
+});
+
+// ---------- Settings: password ----------
+document.getElementById('savePasswordBtn').addEventListener('click', async () => {
+  const currentPassword = document.getElementById('currentPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const { ok, data } = await apiSend('/api/admin/password', 'PUT', { currentPassword, newPassword });
+  showMsg('passwordMsg', ok ? 'Password updated!' : (data.message || 'Something went wrong.'), ok);
+  if (ok) {
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+  }
+});
+
+// ---------- Helpers ----------
+function showMsg(id, text, ok) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'form-msg ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function escapeAttr(str) { return escapeHtml(str); }
+
+// ---------- Init ----------
+(async function init() {
+  await loadOverview();
+  await loadRoles();
+  await loadStaff();
+  await loadLinksTab();
+  await loadRules();
+  await loadStatsForm();
+})();

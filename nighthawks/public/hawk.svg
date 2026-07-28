@@ -1,0 +1,32 @@
+<svg width="900" height="900" viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.55"/>
+      <stop offset="60%" stop-color="#7c3aed" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <clipPath id="circleClip">
+      <circle cx="450" cy="450" r="300"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="450" cy="450" r="420" fill="url(#glow)"/>
+  <circle cx="450" cy="450" r="300" fill="none" stroke="url(#ring)" stroke-width="3" opacity="0.85"/>
+
+  <!--
+    Put your hawk photo file next to this one (same "public" folder)
+    and set the file name below, e.g. hawk-photo.png or hawk-photo.jpg
+    It will be clipped into the circle and sit inside the glowing ring.
+  -->
+  <image
+    href="hawk-photo.png"
+    x="150" y="150" width="600" height="600"
+    clip-path="url(#circleClip)"
+    preserveAspectRatio="xMidYMid slice"
+    onerror="this.style.display='none'"
+  />
+</svg>

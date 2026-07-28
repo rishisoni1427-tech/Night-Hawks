@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Hawks — Staff Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .page-wrap{ padding:60px 24px; max-width:900px; margin:0 auto; }
+  .page-title{ font-family:'Space Grotesk',sans-serif; font-size:2.4rem; margin-bottom:10px; }
+  .page-sub{ color:var(--text-mid); margin-bottom:36px; }
+  .staff-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px; }
+  .staff-card{ border-radius:16px; padding:24px; }
+  .staff-card .name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:8px; }
+  .staff-card .bio{ color:var(--text-mid); font-size:0.85rem; line-height:1.5; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<header class="navbar glass">
+  <div class="nav-left">
+    <svg class="logo-icon" width="34" height="34" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 12l4 2 6-6 6 6 4-2L12 2z" fill="url(#lg)"/>
+      <path d="M12 8l-8 8 8 4 8-4-8-8z" fill="url(#lg)" opacity="0.6"/>
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="24" y2="24">
+        <stop offset="0" stop-color="#c084fc"/><stop offset="1" stop-color="#7c3aed"/>
+      </linearGradient></defs>
+    </svg>
+    <span class="brand">NIGHT HAWKS</span>
+  </div>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="#">Community</a>
+    <a href="staff.html" class="active">Staff</a>
+    <a href="#">Events</a>
+    <a href="#">Leaderboard</a>
+    <a href="#">Gallery</a>
+    <a href="rules.html">Rules</a>
+    <a href="#">Contact</a>
+  </nav>
+  <a href="admin-login.html" class="btn btn-ghost glass btn-nav" style="margin-right:12px;">🔒 Admin</a>
+  <a id="navDiscordBtn" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-nav">Join Discord</a>
+</header>
+
+<div class="page-wrap">
+  <h1 class="page-title">Staff <span class="grad-text">Team</span></h1>
+  <p class="page-sub">The people who keep Night Hawks running.</p>
+  <div class="staff-grid" id="staffGrid"></div>
+</div>
+
+<footer class="footer glass">
+  <div class="footer-socials">
+    <a id="footerDiscord" href="#" target="_blank" rel="noopener">Discord</a>
+    <a id="footerYoutube" href="#" target="_blank" rel="noopener">YouTube</a>
+    <a id="footerInstagram" href="#" target="_blank" rel="noopener">Instagram</a>
+  </div>
+  <p class="footer-tag">WE DON'T FOLLOW THE NIGHT. <span class="grad-text">WE OWN IT.</span></p>
+  <p class="footer-copy">© 2026 Night Hawks. All rights reserved.</p>
+</footer>
+
+<script>
+  async function loadLinks() {
+    try {
+      const res = await fetch('/api/links');
+      const l = await res.json();
+      document.getElementById('navDiscordBtn').href = l.discord;
+      document.getElementById('footerDiscord').href = l.discord;
+      document.getElementById('footerYoutube').href = l.youtube;
+      document.getElementById('footerInstagram').href = l.instagram;
+    } catch (e) {}
+  }
+  async function loadStaff() {
+    try {
+      const res = await fetch('/api/staff');
+      const staff = await res.json();
+      const grid = document.getElementById('staffGrid');
+      grid.innerHTML = staff.map(m => `
+        <div class="staff-card glass">
+          <div class="name">${m.name}</div>
+          <span class="role-tag role-${m.role.toLowerCase()}">${m.role}</span>
+          <div class="bio">${m.bio || ''}</div>
+        </div>
+      `).join('');
+    } catch (e) {}
+  }
+  loadLinks();
+  loadStaff();
+</script>
+</body>
+</html>

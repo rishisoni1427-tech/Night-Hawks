@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Hawks — Admin Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .admin-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .admin-card{
+    width:100%; max-width:380px;
+    border-radius:20px; padding:36px 32px;
+    text-align:center;
+  }
+  .owner-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:100px; font-size:0.72rem; font-weight:700;
+    letter-spacing:0.5px; color:#facc15;
+    background: rgba(250,204,21,0.12); border:1px solid rgba(250,204,21,0.35);
+    margin-bottom:22px;
+  }
+  .lock-icon{
+    width:56px; height:56px; border-radius:14px; margin:0 auto 18px;
+    background: var(--glass-bg-2); border:1px solid var(--glass-border);
+    display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+  }
+  .admin-title{ font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; margin-bottom:6px; }
+  .admin-sub{ color:var(--text-mid); font-size:0.85rem; margin-bottom:24px; }
+  .admin-error{
+    display:none;
+    background: rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.35);
+    color:#f87171; font-size:0.82rem; padding:10px 14px; border-radius:10px;
+    margin-bottom:18px; text-align:left;
+  }
+  .field{ text-align:left; margin-bottom:16px; }
+  .field label{ display:block; font-size:0.78rem; color:var(--text-mid); margin-bottom:6px; }
+  .field input{
+    width:100%; padding:12px 14px; border-radius:10px;
+    background: rgba(255,255,255,0.05); border:1px solid var(--glass-border);
+    color:var(--text-hi); font-size:0.9rem; outline:none;
+  }
+  .field input:focus{ border-color:var(--purple-3); }
+  .admin-submit{
+    width:100%; padding:13px; border:none; border-radius:100px;
+    font-weight:700; font-size:0.95rem; cursor:pointer;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color:#1a1a1a; margin-top:6px;
+    transition: transform .15s ease;
+  }
+  .admin-submit:hover{ transform: translateY(-2px); }
+  .back-link{ display:block; margin-top:18px; font-size:0.82rem; color:var(--purple-3); text-decoration:none; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div class="admin-wrap">
+  <div class="admin-card glass">
+    <span class="owner-badge">🔒 OWNER ACCESS ONLY</span>
+    <div class="lock-icon">🔒</div>
+    <h1 class="admin-title">Night Hawks <span class="grad-text">Admin</span></h1>
+    <p class="admin-sub">Sign in to manage staff, roles, links and rules.</p>
+
+    <div class="admin-error" id="adminError"></div>
+
+    <form id="adminLoginForm">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="admin-submit">Sign In</button>
+    </form>
+
+    <a href="index.html" class="back-link">← Back to site</a>
+  </div>
+</div>
+
+<script src="admin-login.js"></script>
+</body>
+</html>

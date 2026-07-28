@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Hawks — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div class="admin-body">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar glass">
+    <div class="admin-brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 12l4 2 6-6 6 6 4-2L12 2z" fill="url(#lg)"/>
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="24" y2="24">
+          <stop offset="0" stop-color="#c084fc"/><stop offset="1" stop-color="#7c3aed"/>
+        </linearGradient></defs>
+      </svg>
+      <span>NIGHT HAWKS</span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+
+    <nav class="admin-nav">
+      <div class="admin-nav-item active" data-tab="overview">📊 Overview</div>
+      <div class="admin-nav-item" data-tab="staff">👥 Staff</div>
+      <div class="admin-nav-item" data-tab="roles">🛡️ Roles</div>
+      <div class="admin-nav-item" data-tab="links">🔗 Links</div>
+      <div class="admin-nav-item" data-tab="rules">📄 Rules</div>
+      <div class="admin-nav-item" data-tab="settings">⚙️ Settings</div>
+    </nav>
+
+    <div class="admin-user">
+      <div class="admin-avatar" id="avatarInitial">A</div>
+      <div class="admin-user-info">
+        <strong id="adminNameLabel">Admin</strong>
+        <span>Owner</span>
+      </div>
+    </div>
+    <a href="index.html" class="admin-sidebar-btn">← View Site</a>
+    <button class="admin-sidebar-btn danger" id="logoutBtn">↪ Log Out</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- OVERVIEW -->
+    <section class="admin-section active" id="tab-overview">
+      <div class="admin-page-head">
+        <div>
+          <h1>Welcome back, <span class="grad-text" id="welcomeName">Admin</span></h1>
+          <p>Here's what's happening with Night Hawks right now.</p>
+        </div>
+      </div>
+
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card glass">
+          <div class="value" id="ovMembersOnline">—</div>
+          <div class="label">Members Online</div>
+          <div class="live-dot">● LIVE</div>
+        </div>
+        <div class="admin-stat-card glass">
+          <div class="value" id="ovTotalMembers">—</div>
+          <div class="label">Total Members</div>
+        </div>
+        <div class="admin-stat-card glass">
+          <div class="value" id="ovStaffCount">—</div>
+          <div class="label">Staff Members</div>
+        </div>
+        <div class="admin-stat-card glass">
+          <div class="value" id="ovRolesCount">—</div>
+          <div class="label">Roles Configured</div>
+        </div>
+      </div>
+
+      <div class="admin-panel glass">
+        <h3>Quick actions</h3>
+        <p class="sub">Jump straight to what you came here to edit</p>
+        <div class="quick-actions">
+          <button class="qa-btn" data-goto="staff">Manage Staff</button>
+          <button class="qa-btn" data-goto="roles">Manage Roles</button>
+          <button class="qa-btn" data-goto="links">Edit Social Links</button>
+          <button class="qa-btn" data-goto="rules">Edit Rules Page</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAFF -->
+    <section class="admin-section" id="tab-staff">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Staff</h2>
+            <p>Add, edit, or remove staff members — changes appear on <code>/staff</code> instantly.</p>
+          </div>
+          <button class="btn-add" id="addStaffBtn">+ Add Staff Member</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Member</th><th>Role</th><th>Bio</th><th></th></tr></thead>
+          <tbody id="staffTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ROLES -->
+    <section class="admin-section" id="tab-roles">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Roles</h2>
+            <p>These roles are assignable to staff members.</p>
+          </div>
+          <button class="btn-add" id="addRoleBtn">+ Add Role</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Role Name</th><th>Color</th><th></th></tr></thead>
+          <tbody id="rolesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="admin-section" id="tab-links">
+      <div class="admin-panel glass">
+        <h3>Social Links</h3>
+        <p class="sub">These links power the navbar and footer buttons on the live site.</p>
+        <div class="admin-form-grid">
+          <div class="admin-field">
+            <label>Discord Invite Link</label>
+            <input type="text" id="linkDiscord" placeholder="https://discord.gg/...">
+          </div>
+          <div class="admin-field">
+            <label>YouTube Link</label>
+            <input type="text" id="linkYoutube" placeholder="https://youtube.com/@...">
+          </div>
+          <div class="admin-field">
+            <label>Instagram Link</label>
+            <input type="text" id="linkInstagram" placeholder="https://instagram.com/...">
+          </div>
+          <button class="btn-save" id="saveLinksBtn">Save Links</button>
+          <div class="form-msg" id="linksMsg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RULES -->
+    <section class="admin-section" id="tab-rules">
+      <div class="admin-table-wrap glass">
+        <div class="admin-table-head">
+          <div>
+            <h2>Community Rules</h2>
+            <p>Add, edit, or remove rules — changes appear on <code>/rules</code> instantly.</p>
+          </div>
+          <button class="btn-add" id="addRuleBtn">+ Add Rule</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Description</th><th></th></tr></thead>
+          <tbody id="rulesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="admin-section" id="tab-settings">
+      <div class="admin-panel glass" style="margin-bottom:20px;">
+        <h3>Server Stats</h3>
+        <p class="sub">Manually set the numbers shown on the homepage overview card.</p>
+        <div class="admin-form-grid">
+          <div class="admin-field"><label>Members Online</label><input type="number" id="statMembersOnline"></div>
+          <div class="admin-field"><label>Total Members</label><input type="number" id="statTotalMembers"></div>
+          <div class="admin-field"><label>Voice Channels</label><input type="number" id="statVoiceChannels"></div>
+          <div class="admin-field"><label>Uptime %</label><input type="number" step="0.1" id="statUptime"></div>
+          <button class="btn-save" id="saveStatsBtn">Save Stats</button>
+          <div class="form-msg" id="statsMsg"></div>
+        </div>
+      </div>
+
+      <div class="admin-panel glass">
+        <h3>Change Admin Password</h3>
+        <p class="sub">Update the password used to sign in to this dashboard.</p>
+        <div class="admin-form-grid">
+          <div class="admin-field"><label>Current Password</label><input type="password" id="currentPassword"></div>
+          <div class="admin-field"><label>New Password</label><input type="password" id="newPassword"></div>
+          <button class="btn-save" id="savePasswordBtn">Update Password</button>
+          <div class="form-msg" id="passwordMsg"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="modal-overlay" id="staffModal">
+  <div class="modal-box glass">
+    <h3 id="staffModalTitle">Add Staff Member</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Name</label><input type="text" id="staffName"></div>
+      <div class="admin-field"><label>Role</label><select id="staffRole"></select></div>
+      <div class="admin-field"><label>Bio</label><textarea id="staffBio"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="staffCancel">Cancel</button>
+      <button class="btn-save" id="staffSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROLE MODAL -->
+<div class="modal-overlay" id="roleModal">
+  <div class="modal-box glass">
+    <h3 id="roleModalTitle">Add Role</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Role Name</label><input type="text" id="roleName"></div>
+      <div class="admin-field"><label>Color</label><input type="color" id="roleColor" value="#a855f7"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="roleCancel">Cancel</button>
+      <button class="btn-save" id="roleSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- RULE MODAL -->
+<div class="modal-overlay" id="ruleModal">
+  <div class="modal-box glass">
+    <h3 id="ruleModalTitle">Add Rule</h3>
+    <div class="admin-form-grid">
+      <div class="admin-field"><label>Title</label><input type="text" id="ruleTitle"></div>
+      <div class="admin-field"><label>Description</label><textarea id="ruleDescription"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="ruleCancel">Cancel</button>
+      <button class="btn-save" id="ruleSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin-dashboard.js"></script>
+</body>
+</html>
