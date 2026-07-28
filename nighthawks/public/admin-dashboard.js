@@ -393,6 +393,74 @@ async function deleteAnnouncement(id) {
   await loadAnnouncements();
 }
 
+// ---------- Gallery ----------
+let galleryCache = [];
+async function loadGallery() {
+  galleryCache = await apiGet('/api/admin/gallery') || [];
+  renderGalleryGrid();
+}
+function renderGalleryGrid() {
+  const grid = document.getElementById('galleryGrid');
+  if (!galleryCache.length) {
+    grid.innerHTML = `<p style="opacity:0.6;">No photos yet.</p>`;
+    return;
+  }
+  grid.innerHTML = galleryCache.map(img => `
+    <div class="glass" style="border-radius:12px;overflow:hidden;position:relative;">
+      <img src="${img.imageUrl}" style="width:100%;height:140px;object-fit:cover;display:block;">
+      ${img.isPrivate ? '<span style="position:absolute;top:6px;left:6px;background:#7c3aed;color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;">PRIVATE</span>' : ''}
+      <button class="icon-btn delete" data-del-gallery="${img.id}" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);border-radius:6px;">🗑️</button>
+      ${img.caption ? `<div style="padding:6px 10px;font-size:12px;opacity:0.8;">${escapeHtml(img.caption)}</div>` : ''}
+    </div>
+  `).join('');
+  grid.querySelectorAll('[data-del-gallery]').forEach(b => b.addEventListener('click', () => deleteGalleryImage(b.dataset.delGallery)));
+}
+const galleryModal = document.getElementById('galleryModal');
+document.getElementById('addGalleryBtn').addEventListener('click', () => {
+  document.getElementById('galleryFile').value = '';
+  document.getElementById('galleryCaption').value = '';
+  document.getElementById('galleryPrivate').checked = false;
+  document.getElementById('galleryMsg').style.display = 'none';
+  galleryModal.classList.add('open');
+});
+document.getElementById('galleryCancel').addEventListener('click', () => galleryModal.classList.remove('open'));
+document.getElementById('gallerySave').addEventListener('click', async () => {
+  const fileInput = document.getElementById('galleryFile');
+  const file = fileInput.files[0];
+  if (!file) { showMsg('galleryMsg', 'Please choose an image.', false); return; }
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('caption', document.getElementById('galleryCaption').value.trim());
+  formData.append('isPrivate', document.getElementById('galleryPrivate').checked);
+
+  const saveBtn = document.getElementById('gallerySave');
+  saveBtn.textContent = 'Uploading...';
+  saveBtn.disabled = true;
+
+  try {
+    const res = await fetch('/api/admin/gallery/upload', {
+      method: 'POST',
+      headers: { 'x-admin-token': token },
+      body: formData
+    });
+    if (res.status === 401) return handleUnauthorized();
+    if (!res.ok) throw new Error('Upload failed');
+    galleryModal.classList.remove('open');
+    await loadGallery();
+  } catch (e) {
+    showMsg('galleryMsg', 'Upload failed. Try again.', false);
+  } finally {
+    saveBtn.textContent = 'Upload';
+    saveBtn.disabled = false;
+  }
+});
+async function deleteGalleryImage(id) {
+  if (!confirm('Delete this photo?')) return;
+  await apiSend(`/api/admin/gallery/${id}`, 'DELETE');
+  await loadGallery();
+}
+
 // ---------- Settings: stats ----------
 async function loadStatsForm() {
   const data = await apiGet('/api/stats');
@@ -448,5 +516,6 @@ function escapeAttr(str) { return escapeHtml(str); }
   await loadRules();
   await loadEvents();
   await loadAnnouncements();
+  await loadGallery();
   await loadStatsForm();
 })();
