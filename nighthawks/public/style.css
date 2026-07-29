@@ -59,6 +59,8 @@ body{
   padding: 12px 24px;
   border-radius: 100px;
   position: sticky; top:16px; z-index:50;
+  flex-wrap:wrap;
+  gap:12px;
 }
 .nav-left{ display:flex; align-items:center; }
 .nav-left .logo-icon{ margin-right:10px; flex-shrink:0; }
@@ -95,6 +97,7 @@ body{
 .feature-card:hover .feature-icon{ background: rgba(168,85,247,0.18); }
 .btn-ghost{ background: var(--glass-bg-2); }
 .btn-nav{ padding:10px 22px; }
+.admin-btn{ margin-right:12px; }
 .btn-lg{ padding:16px 28px; font-size:0.95rem; }
 
 /* ---------- Hero ---------- */
