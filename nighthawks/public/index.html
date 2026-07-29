@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Night Hawks — Rule the Night. Build the Legacy.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -8,6 +9,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="desktop-scale">
 
 <div class="bg-glow bg-glow-1"></div>
 <div class="bg-glow bg-glow-2"></div>
@@ -170,6 +172,20 @@
   <p class="footer-copy">© 2026 Night Hawks. All rights reserved.</p>
 </footer>
 
+</div>
 <script src="script.js"></script>
+<script>
+function fitDesktopToScreen() {
+  var wrapper = document.getElementById('desktop-scale');
+  if (!wrapper) return;
+  wrapper.style.transform = 'none';
+  var naturalHeight = wrapper.offsetHeight;
+  var scale = window.innerWidth / 1280;
+  wrapper.style.transform = 'scale(' + scale + ')';
+  document.body.style.height = (naturalHeight * scale) + 'px';
+}
+window.addEventListener('load', fitDesktopToScreen);
+window.addEventListener('resize', fitDesktopToScreen);
+</script>
 </body>
 </html>
