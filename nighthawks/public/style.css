@@ -16,23 +16,24 @@
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html{scroll-behavior:smooth;}
-html{
+html, body{
   background: var(--bg);
+  margin:0; padding:0;
+  overflow-x:hidden;
+  width:100%;
 }
 body{
-  background: var(--bg);
   color: var(--text-hi);
   font-family: 'Inter', sans-serif;
-  overflow-x:hidden;
-  overflow-y:hidden;
   position:relative;
-  min-height:100%;
-  height:auto;
-  width:1280px;
-  margin:0 auto;
 }
-html, body{
-  max-width:1280px;
+
+/* Desktop layout wrapper — always rendered at 1280px, then scaled
+   down to fit any screen width by the JS in index.html */
+#desktop-scale{
+  width:1280px;
+  transform-origin: top left;
+  position:relative;
 }
 
 /* ambient glow */
